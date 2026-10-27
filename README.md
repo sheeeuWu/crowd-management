@@ -89,7 +89,7 @@ Create a `.env.local` or `.env` file in the project root:
 NEXT_PUBLIC_API_URL=https://your-api-gateway.com
 
 # Real-Time WebSocket Gateway URL
-NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+NEXT_PUBLIC_SOCKET_URL=http://your-socket-url
 ```
 
 ### 3. Development Server
