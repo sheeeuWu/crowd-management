@@ -18,36 +18,42 @@ export default function OverviewPage() {
     const { latestLiveOccupancy, latestOccupancyCount } = useSocket();
     const [dateRange, setDateRange] = useState<DateRange>(() => getTodayEpochRange());
 
+    const activeSiteId = selectedSite?.siteId || "8bd0d580-fdac-44a4-a6e4-367253099c4e";
+
     const queryParams = useMemo(() => {
         return {
-            siteId: selectedSite?.siteId || "8bd0d580-fdac-44a4-a6e4-367253099c4e",
+            siteId: activeSiteId,
             fromUtc: dateRange.fromUtc,
             toUtc: dateRange.toUtc,
         };
-    }, [selectedSite, dateRange]);
+    }, [activeSiteId, dateRange.fromUtc, dateRange.toUtc]);
 
     const { data: footfallData, isLoading: isFootfallLoading } = useQuery({
         queryKey: ["analytics", "footfall", queryParams],
         queryFn: () => api.getFootfall(queryParams),
-        enabled: !!queryParams.siteId,
+        enabled: Boolean(activeSiteId),
+        staleTime: 2 * 60 * 1000,
     });
 
     const { data: dwellData, isLoading: isDwellLoading } = useQuery({
         queryKey: ["analytics", "dwell", queryParams],
         queryFn: () => api.getDwellTime(queryParams),
-        enabled: !!queryParams.siteId,
+        enabled: Boolean(activeSiteId),
+        staleTime: 2 * 60 * 1000,
     });
 
     const { data: occupancyData, isLoading: isOccupancyLoading } = useQuery({
         queryKey: ["analytics", "occupancy", queryParams],
         queryFn: () => api.getOccupancy(queryParams),
-        enabled: !!queryParams.siteId,
+        enabled: Boolean(activeSiteId),
+        staleTime: 2 * 60 * 1000,
     });
 
     const { data: demographicsData, isLoading: isDemographicsLoading } = useQuery({
         queryKey: ["analytics", "demographics", queryParams],
         queryFn: () => api.getDemographics(queryParams),
-        enabled: !!queryParams.siteId,
+        enabled: Boolean(activeSiteId),
+        staleTime: 2 * 60 * 1000,
     });
 
     const { occupancyPoints, liveOccupancyCount, latestActiveHour } = useMemo(() => {

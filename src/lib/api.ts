@@ -46,20 +46,31 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
         ...options.headers,
     };
 
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
+    // prevent stalled queries from hanging the page
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-    if (!res.ok) {
-        if (res.status === 401) {
-            handleUnauthorizedEvent();
-            throw new UnauthorizedError("Session expired. Please log in again.");
+    try {
+        const res = await fetch(`${BASE_URL}${endpoint}`, {
+            ...options,
+            headers,
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+            if (res.status === 401 || res.status === 403) {
+                handleUnauthorizedEvent();
+                throw new UnauthorizedError("Session expired. Please log in again.");
+            }
+            throw new Error(`API error: ${res.status} ${res.statusText}`);
         }
-        throw new Error(`API error: ${res.status} ${res.statusText}`);
-    }
 
-    return await res.json();
+        return await res.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
 }
 
 export const api = {
